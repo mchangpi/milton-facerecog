@@ -2,35 +2,22 @@ const express = require("express");
 const bcrypt = require("bcrypt-nodejs");
 const app = express();
 const cors = require("cors");
+const knex = require("knex");
+
 require("dotenv").config();
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-const database = {
-  users: [
-    {
-      id: 123,
-      name: "john",
-      email: "john@gmail",
-      password: "john",
-      entries: 0,
-      joined: new Date(),
-    },
-    {
-      id: 124,
-      name: "sally",
-      email: "sally@gmail",
-      password: "sally",
-      entries: 0,
-      joined: new Date(),
-    },
-  ],
-};
-
-app.get("/", (req, resp) => {
-  resp.json(database.users);
+let db = knex({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    user: "milton",
+    password: "milton",
+    database: "smart-brain",
+  },
 });
 
 app.listen(process.env["SERVER_PORT"], () => {
@@ -39,62 +26,76 @@ app.listen(process.env["SERVER_PORT"], () => {
 
 //signin -> POST ok/fail
 app.post("/signin", (req, resp) => {
-  console.log(req.body.email, req.body.password);
-  for (let i = 0; i < database.users.length; i++) {
-    if (
-      req.body.email === database.users[i].email &&
-      req.body.password === database.users[i].password
-    ) {
-      return resp.json(database.users[i]);
-    }
-  }
-  resp.json("login failed");
+  //console.log(req.body.email, req.body.password);
+  db.select("email", "hash")
+    .from("login")
+    .where({ email: req.body.email })
+    .then((list) => {
+      const valid = bcrypt.compareSync(req.body.password, list[0].hash);
+      if (valid) {
+        return db
+          .select("*")
+          .from("users")
+          .where({ email: list[0].email })
+          .then((users) => resp.json(users[0]))
+          .catch((err) => resp.status(400).json("Error when getting users"));
+      } else {
+        resp.status(400).json("Wrong credentials");
+      }
+    })
+    .catch((err) => resp.status(400).json("Error when getting login"));
 });
 
 //register -> POST user
 app.post("/register", (req, resp) => {
   const { email, name, password } = req.body;
-  bcrypt.hash(password, null, null, function (err, hash) {
-    console.log("password as " + hash);
-  });
-
-  const lastId = database.users[database.users.length - 1].id;
-  database.users.push({
-    id: lastId + 1,
-    name: name,
-    email: email,
-    //password: password,
-    entries: 0,
-    joined: new Date(),
-  });
-  resp.json(database.users[database.users.length - 1]);
+  const hash = bcrypt.hashSync(password);
+  db.transaction((trx) => {
+    trx
+      .insert({
+        hash: hash,
+        email: email,
+      })
+      .into("login")
+      .returning("email")
+      .then((logEmails) => {
+        return trx("users")
+          .returning("*")
+          .insert({
+            name: name,
+            email: logEmails[0],
+            joined: new Date(),
+          })
+          .then((users) => resp.json(users[0]));
+      })
+      .then(trx.commit)
+      .catch(trx.rollback);
+  }).catch((err) => resp.status(400).json("unable to register"));
 });
 
 //profile/:id -> GET user
 app.get("/profile/:id", (req, resp) => {
   const { id } = req.params;
-  database.users.forEach((user) => {
-    if (user.id.toString() === id.toString()) {
-      return resp.json(user);
-    }
-  });
-  resp.status(404).json("Not found user with id " + id);
+  db.select("*")
+    .from("users")
+    .where({ id })
+    .then((users) => {
+      if (users.length > 0) resp.json(users[0]);
+      else resp.status(400).json("Not found");
+    })
+    .catch((err) => resp.status(400).json("Errors when getting user"));
 });
 
 //image -> PUT user
 app.put("/image", (req, resp) => {
   const { id } = req.body;
-  console.log("user id: ", id);
-  database.users.forEach((user) => {
-    if (Number(user.id) === Number(id)) {
-      user.entries++;
-      return resp.json(user.entries);
-    }
-  });
-  resp.status(404).json("Not found user with id " + id);
-});
-
-app.post("/profile", (req, resp) => {
-  console.log(req.body);
-  resp.json(req.body);
+  db("users")
+    .where({ id })
+    .increment("entries", 1)
+    .returning("entries")
+    .then((entries) => {
+      console.log("id ", id, " count ", entries[0]);
+      resp.json(entries[0]);
+    })
+    .catch((err) => resp.status(400).json("Not increment entries"));
 });
