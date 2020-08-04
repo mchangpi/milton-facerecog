@@ -30,7 +30,7 @@ app.listen(PORT, () => {
   console.log("node is listening on port " + PORT);
 });
 
-if (process.env.NODE_ENV === "production") {
+if (1) {
   app.use(express.static("client/build"));
 }
 

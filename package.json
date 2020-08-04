@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "client": "cd client && npm install && npm run build && npm run start",
+    "client": "cd client && npm install && npm run build",
     "start": "node server.js",
     "heroku-postbuild": "npm run client",
     "dev": "concurrently \"nodemon server.js\" \"npm run start --prefix client\""
