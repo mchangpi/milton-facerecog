@@ -37,5 +37,7 @@ app.post("/register", register.handleRegister(db, bcrypt));
 //profile/:id -> GET user
 app.get("/profile/:id", profile.handleGet(db));
 
+//image -> POST clarifai api
+app.post("/imageurl", image.handleApi);
 //image -> PUT user
 app.put("/image", image.handlePut(db));
