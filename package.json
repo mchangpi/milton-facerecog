@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "concurrently \"node server.js\" \"npm run start --prefix client\"",
+    "client": "cd client && npm install && npm run build && npm run start",
+    "start": "node server.js",
+    "heroku-postbuild": "npm run client",
     "dev": "concurrently \"nodemon server.js\" \"npm run start --prefix client\""
   },
   "keywords": [],
@@ -18,7 +20,8 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "knex": "^0.21.2",
-    "pg": "^8.3.0"
+    "pg": "^8.3.0",
+    "serve": "^11.3.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
