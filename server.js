@@ -30,7 +30,7 @@ app.listen(PORT, () => {
   console.log("node is listening on port " + PORT);
 });
 
-if (1) {
+if (true) {
   app.use(express.static("client/build"));
 }
 
