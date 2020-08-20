@@ -25,7 +25,7 @@ const initialState = {
   input: "",
   imageUrl: "",
   box: [],
-  route: "signin",
+  route: "register", // signin, home, register
   isSignedIn: false,
   user: {
     id: 0,
@@ -145,6 +145,7 @@ class App extends Component {
         ) : route === "signin" ? (
           <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
         ) : (
+          /* route as "register" */
           <Register
             loadUser={this.loadUser}
             onRouteChange={this.onRouteChange}
