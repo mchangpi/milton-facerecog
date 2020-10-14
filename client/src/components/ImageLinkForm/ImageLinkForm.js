@@ -10,9 +10,10 @@ const ImageLinkForm = ({ onInputChange, onButtonSubmit }) => {
       <div className="center">
         <div className="form center pa4 br3 shadow-5">
           <input
-            type="tex"
+            type="text"
             onChange={onInputChange}
-            className="f4 pa2 w-70 center"
+						className="f4 pa2 w-70 center"
+						defaultValue="https://upload.wikimedia.org/wikipedia/commons/b/be/Smiling_face.jpg"
           />
           <button
             onClick={onButtonSubmit}

@@ -22,7 +22,7 @@ const particlesOptions = {
 };
 
 const initialState = {
-  input: "",
+  input: "https://upload.wikimedia.org/wikipedia/commons/b/be/Smiling_face.jpg",
   imageUrl: "",
   box: [],
   route: "register", // signin, home, register
